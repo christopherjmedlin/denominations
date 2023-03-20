@@ -1,10 +1,16 @@
 #include <stdio.h>
 #include <string.h>
+#include <gtk/gtk.h>
 
-const int DENOMS[7] = {100, 50, 20, 10, 5, 2, 1};
-const int COIN_DENOMS[4] = {25, 10, 5, 1};
+#include "gui.h"
+#include "denoms.h"
+
+void activate(GtkApplication *app, gpointer user_data) {
+  init_gui(app);
+}
 
 int main(int argc, char** argv) {
+  /*
   int dollars = 0, coins = 0;
 
   printf("Please enter a currency value in the form X.YY\n");
@@ -23,4 +29,15 @@ int main(int argc, char** argv) {
     printf("¢%d : %d\n", COIN_DENOMS[i], coins / COIN_DENOMS[i]);
     coins %= COIN_DENOMS[i];
   }
+  */
+
+  GtkApplication *app;
+  int status;
+
+  app = gtk_application_new(NULL, G_APPLICATION_FLAGS_NONE); 
+  g_signal_connect(app, "activate", G_CALLBACK(activate), NULL); 
+  status = g_application_run(G_APPLICATION(app), argc, argv);
+  g_object_unref(app);
+
+  return status;
 }
