@@ -1,14 +1,29 @@
 #include <stdlib.h>
+#include <regex.h>
 
 #include "gui.h"
 #include "denoms.h"
 
 GtkWidget* entry;
 
+// checks string is in the right format with a regular expression
+int is_input_valid(char* s) {
+  regex_t reg;
+  int val = regcomp(&reg, "^[0-9]*\\.[0-9][0-9]$", 0);
+  //g_print("%d\n", val);
+  return !regexec(&reg, s, 0, NULL, 0);
+}
+
+// callback for when the button is pressed
 void entry_callback(GtkWidget* widget, gpointer data) {
   GtkWidget** labels = (GtkWidget**) data; 
   
   char* text = (char*) gtk_entry_get_text(GTK_ENTRY(entry));
+  if (!is_input_valid(text)) {
+    gtk_label_set_text(GTK_LABEL(labels[11]), "Invalid input");
+    return;
+  }
+  gtk_label_set_text(GTK_LABEL(labels[11]), "");
 
   int dollars = get_dollars(text);
   int coins = get_coins(text);
@@ -34,8 +49,9 @@ void entry_callback(GtkWidget* widget, gpointer data) {
   free(coins_change);
 }
 
+// create the labels for change and error
 GtkWidget** init_labels(GtkContainer* container) {
-  GtkWidget **labels = malloc(sizeof(GtkWidget**) * 11);
+  GtkWidget **labels = malloc(sizeof(GtkWidget**) * 12);
   
   labels[0] = gtk_label_new("$1 : 0");
   labels[1] = gtk_label_new("$2 : 0");
@@ -48,35 +64,31 @@ GtkWidget** init_labels(GtkContainer* container) {
   labels[8] = gtk_label_new("¢5 : 0");
   labels[9] = gtk_label_new("¢10 : 0");
   labels[10] = gtk_label_new("¢25 : 0");
+  // error label
+  labels[11] = gtk_label_new("");
 
-  gtk_container_add(container, labels[0]);
-  gtk_container_add(container, labels[1]);
-  gtk_container_add(container, labels[2]);
-  gtk_container_add(container, labels[3]);
-  gtk_container_add(container, labels[4]);
-  gtk_container_add(container, labels[5]);
-  gtk_container_add(container, labels[6]);
-  gtk_container_add(container, labels[7]);
-  gtk_container_add(container, labels[8]);
-  gtk_container_add(container, labels[9]);
-  gtk_container_add(container, labels[10]);
+  gtk_container_add(container, labels[11]);
+  for (int i = 0; i < 11; i++) {
+    gtk_container_add(container, labels[i]);
+  }
   
   return labels;
 }
 
+// initialize all of the widgets
 void init_gui(GtkApplication *app) {
   GtkWidget *window;
 
   // initialize window
   window = gtk_application_window_new(app);
   gtk_window_set_title(GTK_WINDOW(window), "Denominations");
-  gtk_window_set_default_size(GTK_WINDOW(window), 200, 200);
+  gtk_window_set_default_size(GTK_WINDOW(window), 500, 400);
 
   // create box container for vertical flow
   GtkWidget *box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0);
 
   // create instructions label
-  GtkWidget *label = gtk_label_new("Enter a value:");
+  GtkWidget *label = gtk_label_new("Enter a value in the form XXXX.YY:");
   gtk_container_add(GTK_CONTAINER(box), label);
   
   // text input
